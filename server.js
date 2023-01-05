@@ -16,9 +16,7 @@ let PASS=process.env.PASS
 let USER=process.env.USER
 
 app.use(express.json())
-app.use(cors({
-    origin:"http://localhost:3000"
-}))
+app.use(cors())
 
 
 let sendEmail=async(res,temp,mail)=>{
@@ -180,14 +178,14 @@ app.post("/temporarypass",async(req,res)=>{
         let user=await db.collection("users").findOne({email:mail})
         
         if(user){
-            if(pass==user.temporaryPassword){
+            if(pass===user.temporaryPassword){
 
                 await db.collection("users").findOneAndUpdate({email:user.email},{$unset:{temporaryPassword:""}})
                 
                 res.json({message:"Please change your password immediately"})
             }else{
 
-                res.status(406).json.status(406)({message:"email or password not matched"})
+                res.status(406).json({message:"email or password not matched"})
             }
         }else{
             
@@ -225,6 +223,7 @@ app.post("/resetpass",async(req,res)=>{
 
 
 app.post("/login",async(req,res)=>{
+    
     try {
         let connection=await mongoclient.connect(URL);
       
@@ -234,7 +233,7 @@ app.post("/login",async(req,res)=>{
         
         if(user){
         let compare=await bcrypt.compare(req.body.password,user.password);
-     
+         
         if(compare){
            
          let token=jwt.sign({_id:user._id},SECRET,{expiresIn:"8h"})
@@ -244,8 +243,8 @@ app.post("/login",async(req,res)=>{
             
             res.json({token,role:user.role})
             
-         }else if(user.role=="Employee"){
-           if(user.access== true){
+         }else if(user.role==="Employee"){
+           if(user.access=== true){
             res.json({"token":token,role:"Employee"})
            }else{
             res.json({"token":token,role:"Employee No access"})
@@ -259,6 +258,7 @@ app.post("/login",async(req,res)=>{
           res.status(401).json({message:"email or password incorrect"});
         }
        } catch (error) {
+        
         res.status(500).json({message:"something went wrong,try again"})
        }
       })
@@ -339,7 +339,7 @@ app.post("/login",async(req,res)=>{
 
             let user=await db.collection("users").findOneAndUpdate({_id:mongodb.ObjectId( req.params.id)},{$set:req.body})
 
-           if(user.value != null){
+           if(user.value !== null){
 
             res.json({message:"Updated successfully"})
            }else{
