@@ -35,9 +35,9 @@ let sendEmail=async(res,temp,mail)=>{
         let info=await transporter.sendMail({
             from:USER,
             to:mail,
-            subject:"Reset password link from EPIC CRM",
+            subject:"Temporary password from EPIC CRM",
             text:"Please click the link below to reset your password",
-            html:`<p>Your temporary password is-<b>${temp}</b></p>
+            html:`<p>Your temporary password is  <b>${temp}</b></p>
                   <p>Copy the temporary password and submit it by clicking the 
                   temporary password link in the forgot password page</p>`
              })
@@ -46,7 +46,7 @@ let sendEmail=async(res,temp,mail)=>{
         
      catch (error) {
       
-      res.status(500).json({message:"Something went wrong"})
+      res.status(500).json({message:"Something went wrong,please try again"})
     }
 }
 
@@ -83,10 +83,9 @@ try {
 }
 
 let adminAuth=(req,res,next)=>{
-    try {
         if(req.headers.authorization){
       
-            let decode=jwt.verify(req.headers.authorization,process.env.SECRET)
+            let decode=jwt.verify(req.headers.authorization,SECRET)
            
             if(decode){
                 if(req.headers.role=="Admin" || req.headers.role=="Manager"){
@@ -94,52 +93,52 @@ let adminAuth=(req,res,next)=>{
                 }else{
                     res.status(401).json({message:"Unauthorised"}) 
                 }
+             }else{
+                res.status(440).json({message:"Session expired,please login again"})
              }
           
         }else{
           res.status(401).json({message:"Unauthorised"})
         }
-    } catch (error) {
-        res.status(440).json({message:"Session expired,please login again"})
-    }
-    
-    }
+   }
+
 
  let EmpAuth =(req,res,next)=>{
-    try {
+    
         if(req.headers.authorization){
-            let decode=jwt.verify(req.headers.authorization,process.env.SECRET)
+            let decode=jwt.verify(req.headers.authorization,SECRET)
             if(decode){
                 if(req.headers.role=="Admin" || req.headers.role=="Manager" || req.headers.role=="Employee"){
                     next()
                 }else{
                     res.status(401).json({message:"Unauthorised"})
                 }
+            }else{
+                res.status(440).json({message:"Session expired,please login again"})
             }
          }else{
             res.status(401).json({message:"Unauthorised"})
          }
-    } catch (error) {
-        res.status(440).json({message:"Session expired,please login again"})
-    }
-   
 }
+
  
  let Auth=(req,res,next)=>{
-    try {
         if(req.headers.authorization){
-            let decode=jwt.verify(req.headers.authorization,process.env.SECRET)
+            let decode=jwt.verify(req.headers.authorization,SECRET)
             if(decode){
                 next()
+            }else{
+                res.status(440).json({message:"Session expired,please login again"})
             }
         }else{
             res.status(401).json({message:"Unauthorised"})
         }
-    } catch (error) {
-        res.status(440).json({message:"Session expired,please login again"})
     }
     
- }
+        
+    
+    
+ 
 
 app.post("/forgot",async(req,res)=>{
    
@@ -213,7 +212,7 @@ app.post("/resetpass",async(req,res)=>{
 
             res.json({message:"Password updated successfully"})
         }else{
-            res.status(409).json({message:"Email id not valid"})
+            res.status(406).json({message:"Email id not valid"})
         }
     } catch (error) {
         res.status(500).json({message:"Something went wrong,try again"})
@@ -323,7 +322,7 @@ app.post("/login",async(req,res)=>{
 
             res.json(user)
            }else{
-            res.json({message:"invalid user id"})
+            res.status(404).json({message:"invalid user id"})
            } 
         } catch (error) {
            
@@ -363,7 +362,7 @@ app.post("/login",async(req,res)=>{
 
             res.json({message:"User deleted successfully"})
            }else{
-            res.json({message:"invalid user id"})
+            res.status(404).json({message:"invalid user id"})
            } 
         } catch (error) {
            
@@ -374,6 +373,7 @@ app.post("/login",async(req,res)=>{
 
     app.get("/lead",Auth,async(req,res)=>{
         try {
+           
             let connection=await mongoclient.connect(URL);
 
             let db=connection.db(DB);
@@ -420,6 +420,7 @@ app.post("/login",async(req,res)=>{
 
     app.get("/lead/:id",Auth,async(req,res)=>{
         try {
+            
             let connection=await mongoclient.connect(URL);
 
             let db=connection.db(DB);
@@ -430,7 +431,7 @@ app.post("/login",async(req,res)=>{
 
             res.json(lead)
            }else{
-            res.json({message:"invalid lead id"})
+            res.status(404).json({message:"invalid lead id"})
            } 
         } catch (error) {
            
@@ -450,7 +451,7 @@ app.post("/login",async(req,res)=>{
 
             res.json({message:"Lead updated successfully"})
            }else{
-            res.json({message:"invalid user id"})
+            res.status(404).json({message:"invalid user id"})
            } 
         } catch (error) {
            
@@ -470,7 +471,7 @@ app.post("/login",async(req,res)=>{
 
             res.json({message:"Lead deleted successfully"})
            }else{
-            res.json({message:"Invalid lead id"})
+            res.status(404).json({message:"Invalid lead id"})
            } 
         } catch (error) {
            
@@ -536,7 +537,7 @@ app.post("/login",async(req,res)=>{
 
             res.json(lead)
            }else{
-            res.json({message:"invalid user id"})
+            res.status(404).json({message:"invalid user id"})
            } 
         } catch (error) {
            
@@ -556,7 +557,7 @@ app.post("/login",async(req,res)=>{
 
             res.json({message:"Service Request updated successfully"})
            }else{
-            res.json({message:"Invalid service request id"})
+            res.status(404).json({message:"Invalid service request id"})
            } 
         } catch (error) {
            
@@ -576,7 +577,7 @@ app.post("/login",async(req,res)=>{
 
             res.json({message:"Service Request deleted successfully"})
            }else{
-            res.json({message:"invalid service request id"})
+            res.status(404).json({message:"invalid service request id"})
            } 
         } catch (error) {
            
