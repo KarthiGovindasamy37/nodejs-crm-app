@@ -83,63 +83,66 @@ try {
 }
 
 let adminAuth=(req,res,next)=>{
-        if(req.headers.authorization){
+        try{
+            if(req.headers.authorization){
       
-            let decode=jwt.verify(req.headers.authorization,SECRET)
-           
-            if(decode){
-                if(req.headers.role=="Admin" || req.headers.role=="Manager"){
-                    next()
-                }else{
-                    res.status(401).json({message:"Unauthorised"}) 
-                }
-             }else{
-                res.status(440).json({message:"Session expired,please login again"})
-             }
-          
-        }else{
-          res.status(401).json({message:"Unauthorised"})
+                let decode=jwt.verify(req.headers.authorization,SECRET)
+
+                if(decode.role ==="Admin" || decode.role === "Manager"){
+                        next()
+                 }else{
+                        res.status(401).json({message:"Unauthorised"}) 
+                    }
+            }else{
+              res.status(401).json({message:"Unauthorised"})
+            }
+
+        }catch(err){
+            res.status(440).json({message:"Session expired,please login again"})
         }
    }
 
 
  let EmpAuth =(req,res,next)=>{
-    
+    try{
         if(req.headers.authorization){
             let decode=jwt.verify(req.headers.authorization,SECRET)
-            if(decode){
-                if(req.headers.role=="Admin" || req.headers.role=="Manager" || req.headers.role=="Employee"){
+            
+                if(decode.role === "Admin" || decode.role === "Manager"){
                     next()
+                }else if(decode.role === "Employee"){
+                   if(decode.access === true){
+                    next()
+                   }
                 }else{
                     res.status(401).json({message:"Unauthorised"})
                 }
-            }else{
-                res.status(440).json({message:"Session expired,please login again"})
-            }
+            
          }else{
             res.status(401).json({message:"Unauthorised"})
          }
+    }catch(err){
+        res.status(440).json({message:"Session expired,please login again"})
+    }
+        
 }
 
  
- let Auth=(req,res,next)=>{
+ let Auth=(req,res,next)=>{ 
+       try{
         if(req.headers.authorization){
             let decode=jwt.verify(req.headers.authorization,SECRET)
             if(decode){
                 next()
-            }else{
-                res.status(440).json({message:"Session expired,please login again"})
             }
         }else{
             res.status(401).json({message:"Unauthorised"})
         }
+       }catch(err){ 
+        res.status(440).json({message:"Session expired,please login again"})
+       }
     }
     
-        
-    
-    
- 
-
 app.post("/forgot",async(req,res)=>{
    
     try {
@@ -235,23 +238,12 @@ app.post("/login",async(req,res)=>{
          
         if(compare){
            
-         let token=jwt.sign({_id:user._id},SECRET,{expiresIn:"8h"})
+         let token=jwt.sign({_id:user._id,role:user.role,access:user.access},SECRET,{expiresIn:"1m"})
 
-        
-         if(user.role=="Admin" || user.role=="Manager"){
-            
-            res.json({token,role:user.role})
-            
-         }else if(user.role==="Employee"){
-           if(user.access=== true){
-            res.json({"token":token,role:"Employee"})
-           }else{
-            res.json({"token":token,role:"Employee No access"})
-           }
-         }
+        res.json({token}) 
          
         }else{
-          res.send("email or Password incorrect");
+            res.status(401).json({message:"email or password incorrect"});
         }
         }else{
           res.status(401).json({message:"email or password incorrect"});
