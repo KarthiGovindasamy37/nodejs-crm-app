@@ -238,7 +238,7 @@ app.post("/login",async(req,res)=>{
          
         if(compare){
            
-         let token=jwt.sign({_id:user._id,role:user.role,access:user.access},SECRET,{expiresIn:"1m"})
+         let token=jwt.sign({_id:user._id,role:user.role,access:user.access},SECRET,{expiresIn:"5m"})
 
         res.json({token}) 
          
