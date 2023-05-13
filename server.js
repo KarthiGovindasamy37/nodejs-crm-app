@@ -16,7 +16,9 @@ let PASS=process.env.PASS
 let USER=process.env.USER
 
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin : "https://super-dodol-58d830.netlify.app"
+}))
 
 
 let sendEmail=async(res,temp,mail)=>{
